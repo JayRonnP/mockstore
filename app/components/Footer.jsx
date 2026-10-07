@@ -6,56 +6,80 @@ import {Await, NavLink} from 'react-router';
  */
 export function Footer({footer: footerPromise, header, publicStoreDomain}) {
   return (
-    <Suspense>
-      <Await resolve={footerPromise}>
-        {(footer) => (
-          <footer className="footer">
-            {footer?.menu && header.shop.primaryDomain?.url && (
+    <footer className="footer">
+      <div className="footer-content">
+        <div className="footer-brand">
+          <NavLink to="/" className="footer-brand-name">
+            Ron Bike Parts
+          </NavLink>
+          <p>Quality bikes, parts, and gear for every ride.</p>
+        </div>
+
+        <nav className="footer-column" aria-label="Shop">
+          <h2>Shop</h2>
+          <NavLink to="/collections/all">All products</NavLink>
+          <NavLink to="/">Home</NavLink>
+          <NavLink to="/contact">Contact</NavLink>
+        </nav>
+
+        <Suspense>
+          <Await resolve={footerPromise} errorElement={null}>
+            {(footer) => (
               <FooterMenu
-                menu={footer.menu}
-                primaryDomainUrl={header.shop.primaryDomain.url}
+                menu={footer?.menu}
+                primaryDomainUrl={header?.shop?.primaryDomain?.url}
                 publicStoreDomain={publicStoreDomain}
               />
             )}
-          </footer>
-        )}
-      </Await>
-    </Suspense>
+          </Await>
+        </Suspense>
+      </div>
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} Ron Bike Parts</span>
+        <span>Ride with confidence.</span>
+      </div>
+    </footer>
   );
 }
 
 /**
  * @param {{
  *   menu: FooterQuery['menu'];
- *   primaryDomainUrl: FooterProps['header']['shop']['primaryDomain']['url'];
+ *   primaryDomainUrl: string | null | undefined;
  *   publicStoreDomain: string;
  * }}
  */
 function FooterMenu({menu, primaryDomainUrl, publicStoreDomain}) {
+  const filteredItems =
+    menu?.items.filter((item) => item.title.trim().toLowerCase() !== 'search') ??
+    [];
+  const items =
+    filteredItems.length > 0 ? filteredItems : FALLBACK_FOOTER_MENU.items;
+
   return (
-    <nav className="footer-menu" role="navigation">
-      {(menu || FALLBACK_FOOTER_MENU).items.map((item) => {
+    <nav className="footer-column" aria-label="Customer care">
+      <h2>Customer care</h2>
+      {items.map((item) => {
         if (!item.url) return null;
         // if the url is internal, we strip the domain
         const url =
           item.url.includes('myshopify.com') ||
-          item.url.includes(publicStoreDomain) ||
-          item.url.includes(primaryDomainUrl)
+          (publicStoreDomain && item.url.includes(publicStoreDomain)) ||
+          (primaryDomainUrl && item.url.includes(primaryDomainUrl))
             ? new URL(item.url).pathname
             : item.url;
         const isExternal = !url.startsWith('/');
         return isExternal ? (
-          <a href={url} key={item.id} rel="noopener noreferrer" target="_blank">
+          <a
+            href={url}
+            key={item.id}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
             {item.title}
           </a>
         ) : (
-          <NavLink
-            end
-            key={item.id}
-            prefetch="intent"
-            style={activeLinkStyle}
-            to={url}
-          >
+          <NavLink key={item.id} to={url}>
             {item.title}
           </NavLink>
         );
@@ -105,19 +129,6 @@ const FALLBACK_FOOTER_MENU = {
     },
   ],
 };
-
-/**
- * @param {{
- *   isActive: boolean;
- *   isPending: boolean;
- * }}
- */
-function activeLinkStyle({isActive, isPending}) {
-  return {
-    fontWeight: isActive ? 'bold' : undefined,
-    color: isPending ? 'grey' : 'white',
-  };
-}
 
 /**
  * @typedef {Object} FooterProps
