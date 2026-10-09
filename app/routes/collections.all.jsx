@@ -1,5 +1,5 @@
 import {useLoaderData, useSearchParams} from 'react-router';
-import {ShopSidebar, ShopGrid} from '~/components/shoplist';
+import {CatalogSidebar, CatalogGrid} from '~/components/catalog';
 
 /**
  * @type {Route.MetaFunction}
@@ -27,14 +27,23 @@ export default function Collection() {
       ? products
       : products.filter((product) => product.productType === selectedType);
 
+  const productCounts = products.reduce((acc, product) => {
+    acc['All'] = (acc['All'] || 0) + 1;
+    if (product.productType) {
+      acc[product.productType] = (acc[product.productType] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
   return (
     <div className="shop-page">
-      <ShopSidebar
+      <CatalogSidebar
         productTypes={productTypes}
         selectedType={selectedType}
+        productCounts={productCounts}
         basePath="/collections/all"
       />
-      <ShopGrid
+      <CatalogGrid
         products={filteredProducts}
         title={selectedType === 'All' ? 'All products' : selectedType}
       />

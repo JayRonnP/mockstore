@@ -93,25 +93,28 @@ function OrdersTable({orders, filters}) {
  */
 function EmptyOrders({hasFilters = false}) {
   return (
-    <div>
+    <section className="orders-empty-state">
       {hasFilters ? (
         <>
-          <p>No orders found matching your search.</p>
-          <br />
-          <p>
-            <Link to="/account/orders">Clear filters →</Link>
-          </p>
+          <h2>No orders found</h2>
+          <p>Try adjusting your search or clear the filters to see all orders.</p>
+          <Link className="orders-empty-link" to="/account/orders">
+            Clear filters
+          </Link>
         </>
       ) : (
         <>
-          <p>You haven&apos;t placed any orders yet.</p>
-          <br />
-          <p>
-            <Link to="/collections">Start Shopping →</Link>
-          </p>
+          <span className="orders-empty-icon" aria-hidden="true">
+            0
+          </span>
+          <h2>No orders yet</h2>
+          <p>Your purchases will appear here once you place an order.</p>
+          <Link className="orders-empty-link" to="/collections/all">
+            Start shopping
+          </Link>
         </>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -121,7 +124,7 @@ function EmptyOrders({hasFilters = false}) {
  * }}
  */
 function OrderSearchForm({currentFilters}) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   const isSearching =
     navigation.state !== 'idle' &&
@@ -205,22 +208,38 @@ function OrderSearchForm({currentFilters}) {
 function OrderItem({order}) {
   const fulfillmentStatus = flattenConnection(order.fulfillments)[0]?.status;
   return (
-    <>
-      <fieldset>
-        <Link to={`/account/orders/${btoa(order.id)}`}>
-          <strong>#{order.number}</strong>
-        </Link>
-        <p>{new Date(order.processedAt).toDateString()}</p>
+    <article className="account-order-card">
+      <div className="account-order-card-header">
+        <div>
+          <Link
+            className="account-order-number"
+            to={`/account/orders/${btoa(order.id)}`}
+          >
+            Order #{order.number}
+          </Link>
+          <p className="account-order-date">
+            Placed {new Date(order.processedAt).toDateString()}
+          </p>
+        </div>
+        <div className="account-order-total">
+          <span>Total</span>
+          <Money data={order.totalPrice} />
+        </div>
+      </div>
+      <div className="account-order-meta">
         {order.confirmationNumber && (
           <p>Confirmation: {order.confirmationNumber}</p>
         )}
         <p>{order.financialStatus}</p>
         {fulfillmentStatus && <p>{fulfillmentStatus}</p>}
-        <Money data={order.totalPrice} />
-        <Link to={`/account/orders/${btoa(order.id)}`}>View Order →</Link>
-      </fieldset>
-      <br />
-    </>
+      </div>
+      <Link
+        className="account-order-link"
+        to={`/account/orders/${btoa(order.id)}`}
+      >
+        View order
+      </Link>
+    </article>
   );
 }
 
